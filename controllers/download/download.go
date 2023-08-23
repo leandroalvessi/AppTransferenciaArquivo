@@ -2,6 +2,7 @@ package download
 
 import (
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -21,9 +22,12 @@ func DownloadFile(c *gin.Context, fileName string) {
 		return
 	}
 
+	// Codifique o nome do arquivo para uso nos cabeçalhos de resposta
+	encodedFileName := url.PathEscape(fileName)
+
 	// Defina os cabeçalhos de resposta para o download
 	c.Header("Content-Description", "File Transfer")
-	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.Header("Content-Disposition", "attachment; filename="+encodedFileName)
 	c.Header("Content-Type", "application/octet-stream")
 	c.File(filePath)
 }
