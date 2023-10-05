@@ -55,10 +55,10 @@ func main() {
 	}
 
 	// Obtenha a matriz de caracteres representando o QR code
-	qrASCII := qr.ToSmallString(false)
+	//qrASCII := qr.ToSmallString(false)
 
 	// Exiba o QR code no terminal
-	fmt.Println(qrASCII)
+	//fmt.Println(qrASCII)
 
 	// Obtenha a matriz de bytes da imagem PNG do QR code
 	qrBytes, err := qr.PNG(256)
