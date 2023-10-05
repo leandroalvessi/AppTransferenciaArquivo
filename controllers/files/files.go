@@ -1,6 +1,8 @@
 package files
 
 import (
+	"AppTransferenciaArquivo/controllers/conf_rede"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -8,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/skip2/go-qrcode"
 )
 
 type File struct {
@@ -49,9 +52,52 @@ func ListFiles(c *gin.Context) {
 		return
 	}
 
+	interfaceRede, err := conf_rede.GetLocalIP()
+	if err != nil {
+		fmt.Println("Erro ao obter endereço IP:", err)
+		os.Exit(1)
+	}
+
+	port := "8080"
+
+	hostName := ""
+	for _, pair := range interfaceRede {
+		fmt.Printf("Interface: %s. Acesse em http://%s:%s\n", pair.Name, pair.IP, port)
+
+		if pair.Name == "Wi-Fi" {
+			hostName = "http://" + pair.IP + ":" + port + "/files"
+		} else {
+			hostName = "http://" + pair.IP + ":" + port + "/files"
+		}
+	}
+
+	// Crie um novo QR code com o link
+	qr, err := qrcode.New(hostName, qrcode.Medium)
+	if err != nil {
+		fmt.Println("Erro ao criar o QR code:", err)
+		return
+	}
+
+	// Obtenha a matriz de caracteres representando o QR code
+	//qrASCII := qr.ToSmallString(false)
+
+	// Exiba o QR code no terminal
+	//fmt.Println(qrASCII)
+
+	// Obtenha a matriz de bytes da imagem PNG do QR code
+	qrBytes, err := qr.PNG(256)
+	if err != nil {
+		fmt.Println("Erro ao gerar imagem PNG do QR code:", err)
+		return
+	}
+
+	// Converta os bytes da imagem PNG em uma representação base64
+	qrBase64 := base64.StdEncoding.EncodeToString(qrBytes)
+
 	c.HTML(http.StatusOK, "files.html", gin.H{
 		"FileNames": fileNames,
 		"Year":      time.Now().Year(),
+		"QRCode":    qrBase64,
 	})
 
 }
