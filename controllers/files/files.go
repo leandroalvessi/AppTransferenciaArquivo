@@ -1,7 +1,7 @@
 package files
 
 import (
-	"AppTransferenciaArquivo/controllers/conf_rede"
+	"AppTransferenciaArquivo/controllers/global"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -52,27 +52,8 @@ func ListFiles(c *gin.Context) {
 		return
 	}
 
-	interfaceRede, err := conf_rede.GetLocalIP()
-	if err != nil {
-		fmt.Println("Erro ao obter endereço IP:", err)
-		os.Exit(1)
-	}
-
-	port := "8080"
-
-	hostName := ""
-	for _, pair := range interfaceRede {
-		fmt.Printf("Interface: %s. Acesse em http://%s:%s\n", pair.Name, pair.IP, port)
-
-		if pair.Name == "Wi-Fi" {
-			hostName = "http://" + pair.IP + ":" + port + "/files"
-		} else {
-			hostName = "http://" + pair.IP + ":" + port + "/files"
-		}
-	}
-
 	// Crie um novo QR code com o link
-	qr, err := qrcode.New(hostName, qrcode.Medium)
+	qr, err := qrcode.New(global.HostGlobal+"files", qrcode.Medium)
 	if err != nil {
 		fmt.Println("Erro ao criar o QR code:", err)
 		return

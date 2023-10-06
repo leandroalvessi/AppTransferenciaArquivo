@@ -1,10 +1,11 @@
 package main
 
 import (
-	conf_rede "AppTransferenciaArquivo/controllers/conf_rede"
-	delete "AppTransferenciaArquivo/controllers/delete"
-	download "AppTransferenciaArquivo/controllers/download"
-	file "AppTransferenciaArquivo/controllers/files"
+	"AppTransferenciaArquivo/controllers/conf_rede"
+	"AppTransferenciaArquivo/controllers/delete"
+	"AppTransferenciaArquivo/controllers/download"
+	"AppTransferenciaArquivo/controllers/files"
+	"AppTransferenciaArquivo/controllers/global"
 	"AppTransferenciaArquivo/controllers/upload"
 	"encoding/base64"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	global.Port = "8080"
 
 	workingDir, err := os.Getwd()
 	if err != nil {
@@ -28,27 +30,10 @@ func main() {
 
 	router.LoadHTMLGlob(workingDir + "/templates/*.html")
 
-	interfaceRede, err := conf_rede.GetLocalIP()
-	if err != nil {
-		fmt.Println("Erro ao obter endereço IP:", err)
-		os.Exit(1)
-	}
-
-	port := "8080"
-
-	hostName := ""
-	for _, pair := range interfaceRede {
-		fmt.Printf("Interface: %s. Acesse em http://%s:%s\n", pair.Name, pair.IP, port)
-
-		if pair.Name == "Wi-Fi" {
-			hostName = "http://" + pair.IP + ":" + port + "/"
-		} else {
-			hostName = "http://" + pair.IP + ":" + port + "/"
-		}
-	}
+	global.HostGlobal = conf_rede.ConfigLink()
 
 	// Crie um novo QR code com o link
-	qr, err := qrcode.New(hostName, qrcode.Medium)
+	qr, err := qrcode.New(global.HostGlobal, qrcode.Medium)
 	if err != nil {
 		fmt.Println("Erro ao criar o QR code:", err)
 		return
@@ -81,7 +66,7 @@ func main() {
 		upload.Upload(c, workingDir)
 	})
 
-	router.GET("/files", file.ListFiles)
+	router.GET("/files", files.ListFiles)
 
 	router.POST("/download", func(c *gin.Context) {
 		filename := c.PostForm("filename")
@@ -93,7 +78,7 @@ func main() {
 		delete.DeleteFile(c, workingDir, filename)
 	})
 
-	go conf_rede.OpenBrowser(hostName)
+	go conf_rede.OpenBrowser(global.HostGlobal)
 
-	router.Run(":" + port)
+	router.Run(":" + global.Port)
 }

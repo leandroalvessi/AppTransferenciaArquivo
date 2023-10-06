@@ -1,8 +1,10 @@
 package conf_rede
 
 import (
+	"AppTransferenciaArquivo/controllers/global"
 	"fmt"
 	"net"
+	"os"
 	"os/exec"
 	"runtime"
 )
@@ -69,4 +71,27 @@ func OpenBrowser(url string) error {
 	}
 
 	return err
+}
+
+func ConfigLink() string {
+	interfaceRede, err := GetLocalIP()
+	if err != nil {
+		fmt.Println("Erro ao obter endereço IP:", err)
+		os.Exit(1)
+	}
+
+	var link string
+
+	for _, pair := range interfaceRede {
+		fmt.Printf("Interface: %s. Acesse em http://%s:%s\n", pair.Name, pair.IP, global.Port)
+
+		if pair.Name == "Wi-Fi" {
+			link = "http://" + pair.IP + ":" + global.Port + "/"
+			break
+		} else {
+			link = "http://" + pair.IP + ":" + global.Port + "/"
+		}
+	}
+
+	return link
 }
