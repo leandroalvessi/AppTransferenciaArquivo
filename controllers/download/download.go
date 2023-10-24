@@ -1,8 +1,8 @@
 package download
 
 import (
+	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 
@@ -22,12 +22,28 @@ func DownloadFile(c *gin.Context, fileName string) {
 		return
 	}
 
-	// Codifique o nome do arquivo para uso nos cabeçalhos de resposta
-	encodedFileName := url.PathEscape(fileName)
+	// Abra o arquivo
+	file, err := os.Open(filePath)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": "Erro ao abrir o arquivo",
+		})
+		return
+	}
+	defer file.Close()
 
-	// Defina os cabeçalhos de resposta para o download
-	c.Header("Content-Description", "File Transfer")
-	c.Header("Content-Disposition", "attachment; filename="+encodedFileName)
+	// Defina o tipo de conteúdo do cabeçalho de resposta
 	c.Header("Content-Type", "application/octet-stream")
-	c.File(filePath)
+
+	// Defina o cabeçalho de resposta para permitir o download do arquivo com o nome original
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+
+	// Copie o conteúdo do arquivo para o corpo da resposta
+	_, err = io.Copy(c.Writer, file)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": "Erro ao enviar o arquivo",
+		})
+		return
+	}
 }
