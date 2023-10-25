@@ -55,28 +55,42 @@ func main() {
 	// Converta os bytes da imagem PNG em uma representação base64
 	qrBase64 := base64.StdEncoding.EncodeToString(qrBytes)
 
-	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "upload.html", gin.H{
-			"Year":   time.Now().Year(),
-			"QRCode": qrBase64,
+	dateLicense := time.Date(2024, time.October, 25, 23, 59, 59, 0, time.UTC)
+	formato := "02/01/2006 15:04:05"
+
+	// Comparar a data atual com a data um ano atrás
+	if dateLicense.Before(time.Now()) {
+		router.GET("/", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "license.html", gin.H{
+				"Year":        time.Now().Year(),
+				"DateLicense": dateLicense.Format(formato),
+			})
 		})
-	})
+	} else {
 
-	router.POST("/upload", func(c *gin.Context) {
-		upload.Upload(c, workingDir)
-	})
+		router.GET("/", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "upload.html", gin.H{
+				"Year":   time.Now().Year(),
+				"QRCode": qrBase64,
+			})
+		})
 
-	router.GET("/files", files.ListFiles)
+		router.POST("/upload", func(c *gin.Context) {
+			upload.Upload(c, workingDir)
+		})
 
-	router.POST("/download", func(c *gin.Context) {
-		filename := c.PostForm("filename")
-		download.DownloadFile(c, filename)
-	})
+		router.GET("/files", files.ListFiles)
 
-	router.POST("/delete", func(c *gin.Context) {
-		filename := c.PostForm("filename")
-		delete.DeleteFile(c, workingDir, filename)
-	})
+		router.POST("/download", func(c *gin.Context) {
+			filename := c.PostForm("filename")
+			download.DownloadFile(c, filename)
+		})
+
+		router.POST("/delete", func(c *gin.Context) {
+			filename := c.PostForm("filename")
+			delete.DeleteFile(c, workingDir, filename)
+		})
+	}
 
 	go conf_rede.OpenBrowser(global.HostGlobal)
 
