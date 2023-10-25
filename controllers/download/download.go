@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,8 +36,14 @@ func DownloadFile(c *gin.Context, fileName string) {
 	// Defina o tipo de conteúdo do cabeçalho de resposta
 	c.Header("Content-Type", "application/octet-stream")
 
+	// Escape o nome do arquivo se ele contiver vírgulas
+	escapedFileName := fileName
+	if containsComma(fileName) {
+		escapedFileName = `"` + fileName + `"`
+	}
+
 	// Defina o cabeçalho de resposta para permitir o download do arquivo com o nome original
-	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.Header("Content-Disposition", "attachment; filename="+escapedFileName)
 
 	// Copie o conteúdo do arquivo para o corpo da resposta
 	_, err = io.Copy(c.Writer, file)
@@ -46,4 +53,8 @@ func DownloadFile(c *gin.Context, fileName string) {
 		})
 		return
 	}
+}
+
+func containsComma(fileName string) bool {
+	return strings.Contains(fileName, ",")
 }
