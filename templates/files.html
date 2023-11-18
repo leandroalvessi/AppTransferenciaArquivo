@@ -56,6 +56,12 @@
 											<button type="submit" class="btn btn-success">Baixar</button>
 										</form>
 									</td>
+									<td>
+										<form action="/view" method="post">
+											<input type="hidden" name="filename" value="{{ .Name }}">
+											<button type="submit" class="btn btn-primary">Visualizar</button>
+										</form>
+									</td>
 								</tr>
 								{{ end }}
 							</tbody>

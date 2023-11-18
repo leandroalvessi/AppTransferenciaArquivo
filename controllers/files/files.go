@@ -4,12 +4,15 @@ import (
 	"AppTransferenciaArquivo/controllers/global"
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jung-kurt/gofpdf"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -81,6 +84,52 @@ func ListFiles(c *gin.Context) {
 		"QRCode":    qrBase64,
 	})
 
+}
+func GeneratePDF(pdfPath string, c *gin.Context) error {
+	// Create a new PDF document
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+
+	// Set font
+	pdf.SetFont("Arial", "B", 16)
+
+	// Add "Hello World" text to the PDF
+	pdf.Cell(40, 10, c.PostForm("filename"))
+
+	// Output the PDF to a file
+	return pdf.OutputFileAndClose(pdfPath)
+}
+
+func ViewPDF(c *gin.Context) {
+	// Define the directory where PDF files are stored
+	pdfDirectory := "pdf"
+
+	// Create a filename for the "Hello World" PDF
+	filename := c.PostForm("filename") + ".pdf"
+
+	// Create the full path to the PDF file
+	pdfPath := path.Join(pdfDirectory, filename)
+
+	// Generate the "Hello World" PDF
+	err := GeneratePDF(pdfPath, c)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": "Error generating the PDF file",
+		})
+		return
+	}
+
+	// Read the content of the PDF file
+	pdfContent, err := ioutil.ReadFile(pdfPath)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": "Error reading the PDF file",
+		})
+		return
+	}
+
+	// You can use the PDF content as needed, for example, send it to the client
+	c.Data(http.StatusOK, "application/pdf", pdfContent)
 }
 
 func formatSize(size int64) string {

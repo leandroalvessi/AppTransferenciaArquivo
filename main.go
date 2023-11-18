@@ -80,6 +80,7 @@ func main() {
 		})
 
 		router.GET("/files", files.ListFiles)
+		router.POST("/view", files.ViewPDF)
 
 		router.POST("/download", func(c *gin.Context) {
 			filename := c.PostForm("filename")
