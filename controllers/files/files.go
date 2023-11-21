@@ -88,13 +88,36 @@ func ListFiles(c *gin.Context) {
 func GeneratePDF(pdfPath string, c *gin.Context) error {
 	// Create a new PDF document
 	pdf := gofpdf.New("P", "mm", "A4", "")
+
+	// Set font for the entire document
+	pdf.SetFont("Arial", "", 12)
+
+	// Set header function
+	pdf.SetHeaderFunc(func() {
+		pdf.SetY(10) // Adjust the Y position as needed
+		pdf.SetFont("Arial", "B", 12)
+		pdf.Cell(0, 10, "My Document Header")
+		pdf.Ln(10) // Move the cursor down by 10 units
+	})
+
+	// Add a page to the document
 	pdf.AddPage()
 
-	// Set font
-	pdf.SetFont("Arial", "B", 16)
+	// Set footer function (optional)
+	pdf.SetFooterFunc(func() {
+		pdf.SetXY(-20, -15)
+		pdf.SetFont("Arial", "I", 8)
+		pdf.Cell(0, 10, fmt.Sprintf("Page %d", pdf.PageNo()))
+	})
 
-	// Add "Hello World" text to the PDF
-	pdf.Cell(40, 10, c.PostForm("filename"))
+	// Set font back to regular for the main content
+	pdf.SetFont("Arial", "", 12)
+
+	// Add content to the document
+	for i := 0; i < 50; i++ {
+		pdf.Cell(0, 10, fmt.Sprintf("Line %d", i+1))
+		pdf.Ln(10)
+	}
 
 	// Output the PDF to a file
 	return pdf.OutputFileAndClose(pdfPath)
