@@ -19,5 +19,14 @@ func DeleteFile(c *gin.Context, savePath, fileName string) {
 		return
 	}
 
+	filePath = filepath.Join(savePath, "pdf", fileName)
+	err = os.Remove(filePath + ".pdf")
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"Error": err.Error(),
+		})
+		return
+	}
+
 	c.Redirect(http.StatusFound, "/files")
 }
