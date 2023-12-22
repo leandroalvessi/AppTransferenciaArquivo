@@ -3,6 +3,7 @@ package download
 import (
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,11 +37,8 @@ func DownloadFile(c *gin.Context, fileName string) {
 	// Defina o tipo de conteúdo do cabeçalho de resposta
 	c.Header("Content-Type", "application/octet-stream")
 
-	// Escape o nome do arquivo se ele contiver vírgulas
-	escapedFileName := fileName
-	if containsComma(fileName) {
-		escapedFileName = `"` + fileName + `"`
-	}
+	// Escape o nome do arquivo corretamente
+	escapedFileName := url.PathEscape(fileName)
 
 	// Defina o cabeçalho de resposta para permitir o download do arquivo com o nome original
 	c.Header("Content-Disposition", "attachment; filename="+escapedFileName)
